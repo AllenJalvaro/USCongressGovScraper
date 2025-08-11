@@ -32,7 +32,7 @@ export default async function scrapeUSCongressGov(req, res) {
     );
 
     try {
-      await page.goto(url, { waitUntil: "networkidle2", timeout:45000 });
+      await page.goto(url, { waitUntil: "networkidle2", timeout: 45000 });
     } catch (navError) {
       console.error("Navigation failed:", navError);
       throw navError;
