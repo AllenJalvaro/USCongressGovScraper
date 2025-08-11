@@ -2,7 +2,7 @@
   "name": "puppeteer-practice-1",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.js",
+  "main": "api/scrape-us.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
