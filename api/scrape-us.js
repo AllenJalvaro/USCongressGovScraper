@@ -4,7 +4,7 @@ const BASE_URL = "https://congress.gov";
 
 export default async function scrapeUSCongressGov(req, res) {
   const url = req.query.url;
-
+  console.log("Scraping URL:", url);
   if (!url) {
     res.status(400).json({ error: "Missing required query parameter: url" });
     return;
@@ -14,15 +14,28 @@ export default async function scrapeUSCongressGov(req, res) {
   try {
     browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+        "--single-process",
+        "--no-zygote",
+      ],
     });
+
     const page = await browser.newPage();
 
     await page.setUserAgent(
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
     );
 
-    await page.goto(url, { waitUntil: "networkidle2" });
+    try {
+      await page.goto(url, { waitUntil: "networkidle2" });
+    } catch (navError) {
+      console.error("Navigation failed:", navError);
+      throw navError;
+    }
 
     const data = await page.evaluate((BASE_URL) => {
       const items = Array.from(
@@ -47,8 +60,7 @@ export default async function scrapeUSCongressGov(req, res) {
             item.querySelectorAll("span.result-item")
           ).find((span) => span.textContent.includes("Latest Action"));
           if (latestActionSpan) {
-            const pdfAnchor =
-              latestActionSpan.querySelector('a[href$=".pdf"]');
+            const pdfAnchor = latestActionSpan.querySelector('a[href$=".pdf"]');
             if (pdfAnchor) {
               const href = pdfAnchor.getAttribute("href");
               pdflink = href.startsWith("http") ? href : BASE_URL + href;
@@ -82,4 +94,3 @@ export default async function scrapeUSCongressGov(req, res) {
     if (browser) await browser.close();
   }
 }
-
