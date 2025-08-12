@@ -1,11 +1,23 @@
 const isVercelEnvironment = !!process.env.AWS_REGION;
 
 async function getBrowserModules() {
-  const puppeteer = await import('puppeteer-core');
-  const { default: ChromiumClass } = await import('@sparticuz/chromium');
+  const puppeteer = await import("puppeteer-core");
+  const { default: ChromiumClass } = await import("@sparticuz/chromium");
+
+  console.log("--- Debugging ChromiumClass object (Vercel) ---");
+  console.log("Type of ChromiumClass:", typeof ChromiumClass);
+  console.log("Keys of ChromiumClass:", Object.keys(ChromiumClass));
+  console.log("Full ChromiumClass object:", ChromiumClass);
+  console.log(
+    "ChromiumClass.executablePath is a function:",
+    typeof ChromiumClass.executablePath === "function"
+  );
+  console.log("ChromiumClass.args:", ChromiumClass.args);
+  console.log("ChromiumClass.defaultViewport:", ChromiumClass.defaultViewport);
+  console.log("--- End ChromiumClass Debug (Vercel) ---");
 
   let executablePathValue = null;
-  if (typeof ChromiumClass.executablePath === 'function') {
+  if (typeof ChromiumClass.executablePath === "function") {
     executablePathValue = await ChromiumClass.executablePath();
   } else {
     executablePathValue = ChromiumClass.executablePath;
@@ -20,24 +32,41 @@ async function getBrowserModules() {
 }
 
 export default async function handler(req, res) {
+  const { puppeteer, chromiumArgs, chromiumDefaultViewport, executablePath } =
+    await getBrowserModules();
+
+  console.log("--- Puppeteer Launch Debug Info (Vercel) ---");
+  console.log("isVercelEnvironment:", isVercelEnvironment);
+  console.log("chromiumArgs (from @sparticuz/chromium):", chromiumArgs);
+  console.log(
+    "chromiumDefaultViewport (from @sparticuz/chromium):",
+    chromiumDefaultViewport
+  );
+  console.log("Executable Path (from @sparticuz/chromium):", executablePath);
+  console.log("--- End Debug Info (Vercel) ---");
+
+  if (
+    isVercelEnvironment &&
+    (!executablePath ||
+      typeof executablePath !== "string" ||
+      executablePath.trim() === "")
+  ) {
+    console.error(
+      "ERROR: In Vercel environment, executablePath is not valid:",
+      executablePath
+    );
+    return res.status(500).json({
+      error:
+        "Puppeteer launch failed: Missing or invalid Chromium executable path for Vercel environment.",
+    });
+  }
   try {
     const targetUrl = req.query.url;
     if (!targetUrl) {
-      return res.status(400).json({ error: 'Missing url query parameter' });
+      return res.status(400).json({ error: "Missing url query parameter" });
     }
     if (!/^https?:\/\//i.test(targetUrl)) {
-      return res.status(400).json({ error: 'Invalid URL format' });
-    }
-
-    const { puppeteer, chromiumArgs, chromiumDefaultViewport, executablePath } = await getBrowserModules();
-
-    if (
-      isVercelEnvironment &&
-      (!executablePath || typeof executablePath !== 'string' || executablePath.trim() === '')
-    ) {
-      return res.status(500).json({
-        error: 'Puppeteer launch failed: Missing or invalid Chromium executable path for Vercel environment.',
-      });
+      return res.status(400).json({ error: "Invalid URL format" });
     }
 
     const launchOptions = isVercelEnvironment
@@ -49,15 +78,23 @@ export default async function handler(req, res) {
         }
       : {
           headless: true,
-          args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+          defaultViewport: null,
+          slowMo: 50,
+          args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-gpu"],
         };
 
-    const browser = await puppeteer.launch(launchOptions);
+    let browser;
+    console.log(
+      "Attempting to launch Puppeteer with options:",
+      JSON.stringify(launchOptions, null, 2)
+    );
+
+    browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
 
-    await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 45000 });
+    await page.goto(targetUrl, { waitUntil: "networkidle2", timeout: 60000 });
 
-  const data = await page.evaluate(() => {
+    const data = await page.evaluate(() => {
       const items = Array.from(
         document.querySelectorAll("ol.basic-search-results-lists > li.compact")
       );
@@ -91,16 +128,17 @@ export default async function handler(req, res) {
           }
         }
 
-      
-
-        return { legislationName, displayTitle, sourcelink, pdflink,  };
+        return { legislationName, displayTitle, sourcelink, pdflink };
       });
     });
 
-    await browser.close();
     res.status(200).json(data);
   } catch (error) {
-    console.error('Scraping error:', error);
-    res.status(500).json({ error: 'Scraping failed', details: error.message });
+    console.error("Scraping error:", error);
+    res.status(500).json({ error: "Scraping failed", details: error.message });
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }
