@@ -57,35 +57,35 @@ export default async function handler(req, res) {
 
     await page.goto(targetUrl, { waitUntil: 'networkidle2', timeout: 45000 });
 
-    const data = await page.evaluate(() => {
-      const items = Array.from(document.querySelectorAll('ol.basic-search-results-lists > li.compact'));
-      if (!items.length) return [];
+  const data = await page.evaluate(() => {
+  const items = Array.from(document.querySelectorAll('ul.basic-search-results-lists > li.expanded'));
+  if (!items.length) return [];
 
-      return items.map(item => {
-        const legislationId = item.querySelector('.result-heading a')?.innerText.trim() || '';
-        const title = item.querySelector('.result-title')?.innerText.trim() || '';
-        const sourceRel = item.querySelector('.result-heading a')?.getAttribute('href') || '';
-        const sourcelink = sourceRel.startsWith('http') ? sourceRel : 'https://congress.gov' + sourceRel;
+  return items.map(item => {
+    const legislationId = item.querySelector('.result-heading a')?.innerText.trim() || '';
+    const title = item.querySelector('.result-title')?.innerText.trim() || '';
+    const sourceRel = item.querySelector('.result-heading a')?.getAttribute('href') || '';
+    const sourcelink = sourceRel.startsWith('http') ? sourceRel : 'https://congress.gov' + sourceRel;
 
-        let pdflink = null;
-        const latestActionSpan = Array.from(item.querySelectorAll('span.result-item')).find(span => span.textContent.includes('Latest Action'));
-        if (latestActionSpan) {
-          const pdfAnchor = latestActionSpan.querySelector('a[href$=".pdf"]');
-          if (pdfAnchor) {
-            const href = pdfAnchor.getAttribute('href');
-            pdflink = href.startsWith('http') ? href : 'https://congress.gov' + href;
-          }
-        }
+    let pdflink = null;
+    const latestActionSpan = Array.from(item.querySelectorAll('span.result-item')).find(span => span.textContent.includes('Latest Action'));
+    if (latestActionSpan) {
+      const pdfAnchor = latestActionSpan.querySelector('a[href$=".pdf"]');
+      if (pdfAnchor) {
+        const href = pdfAnchor.getAttribute('href');
+        pdflink = href.startsWith('http') ? href : 'https://congress.gov' + href;
+      }
+    }
 
-        let lawNo = null;
-        if (latestActionSpan) {
-          const lawAnchor = Array.from(latestActionSpan.querySelectorAll('a')).find(a => a.textContent.includes('Public Law No'));
-          if (lawAnchor) lawNo = lawAnchor.textContent.trim();
-        }
+    let lawNo = null;
+    if (latestActionSpan) {
+      const lawAnchor = Array.from(latestActionSpan.querySelectorAll('a')).find(a => a.textContent.includes('Public Law No'));
+      if (lawAnchor) lawNo = lawAnchor.textContent.trim();
+    }
 
-        return { legislationId, title, sourcelink, pdflink, lawNo };
-      });
-    });
+    return { legislationId, title, sourcelink, pdflink, lawNo };
+  });
+});
 
     await browser.close();
     res.status(200).json(data);
