@@ -1,4 +1,5 @@
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
 export default async function handler(req, res) {
   const targetUrl = req.query.url;
@@ -13,8 +14,10 @@ export default async function handler(req, res) {
   let browser;
   try {
     browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
@@ -45,7 +48,9 @@ export default async function handler(req, res) {
           const pdfAnchor = latestActionSpan.querySelector('a[href$=".pdf"]');
           if (pdfAnchor) {
             const href = pdfAnchor.getAttribute("href");
-            pdflink = href.startsWith("http") ? href : "https://congress.gov" + href;
+            pdflink = href.startsWith("http")
+              ? href
+              : "https://congress.gov" + href;
           }
         }
 
@@ -62,10 +67,10 @@ export default async function handler(req, res) {
     });
 
     await browser.close();
-    res.status(200).json(data);
-  } catch (error) {
+    return res.status(200).json(data);
+  } catch (err) {
     if (browser) await browser.close();
-    console.error("Scraping error:", error);
-    res.status(500).json({ error: "Scraping failed", details: error.message });
+    console.error("Scraping error:", err);
+    return res.status(500).json({ error: "Scraping failed", details: err.message });
   }
 }
