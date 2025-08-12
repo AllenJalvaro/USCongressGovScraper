@@ -27,12 +27,12 @@ export default async function handler(req, res) {
   const { puppeteer, chromiumArgs, chromiumDefaultViewport, executablePath } =
     await getBrowserModules();
 
-  const { url } = req.query;
-  if (!url) {
-    return res
-      .status(400)
-      .json({ error: "Missing required query parameter: url" });
+  // Catch-all route: req.query.url will be an array of path parts
+  const rawUrlParts = req.query.url;
+  if (!rawUrlParts || !rawUrlParts.length) {
+    return res.status(400).json({ error: "Missing target URL" });
   }
+  const targetUrl = decodeURIComponent(rawUrlParts.join("/"));
 
   const launchOptions = isVercelEnvironment
     ? {
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
 
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 45000 });
+    await page.goto(targetUrl, { waitUntil: "networkidle2", timeout: 45000 });
 
     const data = await page.evaluate(() => {
       const items = Array.from(
