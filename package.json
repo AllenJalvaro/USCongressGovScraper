@@ -2,10 +2,6 @@
   "name": "puppeteer-practice-1",
   "version": "1.0.0",
   "type": "module",
-  "main": "api/scrape-us.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -19,5 +15,11 @@
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "puppeteer-extra-plugin-user-data-dir": "^2.4.1",
     "puppeteer-extra-plugin-user-preferences": "^2.4.1"
+  },
+  "scripts": {
+    "vercel-build": "echo 'No build needed'"
+  },
+  "puppeteer": {
+    "skip_chromium_download": false
   }
 }
