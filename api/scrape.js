@@ -1,7 +1,7 @@
 import puppeteerExtra from "puppeteer-extra";
 import stealthPlugin from "puppeteer-extra-plugin-stealth";
 import Chromium from "@sparticuz/chromium";
-
+//here
 puppeteerExtra.use(stealthPlugin());
 
 const isVercel = !!process.env.AWS_REGION;
