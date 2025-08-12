@@ -5,7 +5,7 @@ import Chromium from '@sparticuz/chromium';
 puppeteerExtra.use(stealthPlugin());
 
 export default async function handler(req, res) {
-  const url = req.query.url;
+  const url = req.params;
   if (!url) {
     return res.status(400).json({ error: "Missing required query parameter: url" });
   }
@@ -55,7 +55,8 @@ export default async function handler(req, res) {
       });
     });
 
-    res.status(200).json(data);
+   const responsee = res.status(200).json(data);
+    console.log(responsee);
   } catch (err) {
     console.error("Scraping error:", err);
     res.status(500).json({ error: "Scraping failed", details: err.message });
