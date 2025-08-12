@@ -31,7 +31,7 @@ async function getBrowserModules() {
   };
 }
 
-export default async function handler(req, res) {
+export default async function (req, res) {
   const { puppeteer, chromiumArgs, chromiumDefaultViewport, executablePath } =
     await getBrowserModules();
 
