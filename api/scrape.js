@@ -61,7 +61,7 @@ export default async function (req, res) {
     });
   }
   try {
-    const targetUrl = req.query.url;
+    const targetUrl =  "https://www.congress.gov/search?q=%7B%22source%22%3A%22legislation%22%2C%22congress%22%3A%22all%22%2C%22bill-status%22%3A%22law%22%7D&pageSize=250";
     if (!targetUrl) {
       return res.status(400).json({ error: "Missing url query parameter" });
     }
