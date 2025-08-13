@@ -1,8 +1,10 @@
 {
-  "type": "module",
   "dependencies": {
     "@sparticuz/chromium": "^137.0.1",
-    "puppeteer": "^24.14.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10",
+    "puppeteer": "^24.16.1",
     "puppeteer-core": "^24.10.2",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-recaptcha": "^3.6.8",
@@ -11,9 +13,11 @@
     "puppeteer-extra-plugin-user-preferences": "^2.4.1"
   },
   "scripts": {
-    "vercel-build": "npm install"
+    "vercel-build": "npm install",
+    "dev": "nodemon ./src/server.js",
+    "start": "node src/server.js"
   },
   "puppeteer": {
-    "skip_chromium_download": false
+    "skip_chromium_download": true
   }
 }

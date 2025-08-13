@@ -89,6 +89,8 @@ export default async function (req, res) {
       JSON.stringify(launchOptions, null, 2)
     );
 
+    
+
     browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
 
