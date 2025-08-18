@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { scrapeCongressData } = require("../api/scrapeUSCongressGovController");
+const { scrapeCongressData } = require("../controllers/scrapeUSCongressGovController");
 
 router.get("/scrape", async (req, res) => {
   const targetUrl = req.query.url;
