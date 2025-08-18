@@ -83,6 +83,11 @@ async function scrapeCongressData(targetUrl) {
       return { length, results };
     });
   } finally {
+    console.log(
+      "Closing browser:",
+      typeof browser,
+      browser ? "exists" : "not launched"
+    );
     if (browser) await browser.close();
   }
 }
