@@ -2,9 +2,9 @@ const isServerless = !!process.env.AWS_REGION;
 let puppeteer;
 
 if (isServerless) {
-  const chromium = require("@sparticuz/chromium");
-  puppeteer = require("puppeteer-extra");
-  const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const chromium = await import("@sparticuz/chromium");
+  puppeteer = await import("puppeteer-extra");
+  const StealthPlugin = await import("puppeteer-extra-plugin-stealth");
   puppeteer.use(StealthPlugin());
 
   module.exports = {
@@ -17,8 +17,8 @@ if (isServerless) {
     },
   };
 } else {
-  puppeteer = require("puppeteer-extra");
-  const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+   puppeteer = await import("puppeteer-extra");
+  const StealthPlugin = await import("puppeteer-extra-plugin-stealth");
   puppeteer.use(StealthPlugin());
 
   module.exports = {
